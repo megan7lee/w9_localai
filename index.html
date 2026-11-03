@@ -1,0 +1,1028 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Python 網頁爬蟲與資料視覺化教學｜國立清華大學數理教育研究所 李惠琦</title>
+<style>
+  :root{
+    --navy:#1f3a5f; --navy-dark:#142945; --gold:#c9a227; --accent:#2e86ab;
+    --green:#2e7d5b; --bg:#f7f8fb; --card:#ffffff; --muted:#6b7280;
+    --border:#e3e7f0; --code:#f1f3f6; --danger:#c0392b; --success:#2e7d5b;
+    --radius:10px; --shadow:0 4px 14px rgba(31,58,95,0.08);
+    --font:'PingFang TC','Microsoft JhengHei','Noto Sans TC',sans-serif;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    margin:0;font-family:var(--font);background:var(--bg);
+    color:#1f2937;line-height:1.65;font-size:16px;
+  }
+  a{color:var(--accent);text-decoration:none}
+  a:hover{text-decoration:underline}
+  .skip{position:absolute;left:-9999px;top:auto;width:1px;height:1px;overflow:hidden}
+
+  /* ---------- Header ---------- */
+  header.site-header{
+    background:linear-gradient(135deg,var(--navy) 0%,var(--navy-dark) 100%);
+    color:#fff;padding:32px 24px 40px;text-align:center;
+  }
+  .badge{
+    display:inline-block;font-size:13px;font-weight:700;letter-spacing:.12em;
+    text-transform:uppercase;color:var(--gold);margin-bottom:10px;
+  }
+  .site-header h1{font-size:27px;margin:0 0 6px;font-weight:800;letter-spacing:.4px}
+  .site-header .sub{color:#d7e3f4;font-size:15px;margin:0 0 18px}
+  .instructor{
+    display:flex;align-items:center;justify-content:center;gap:12px;
+    margin-top:14px;padding:10px 18px;border:1px solid rgba(201,162,39,.35);
+    border-radius:8px;background:rgba(255,255,255,.06);font-size:14px;
+  }
+  .instructor svg{width:22px;height:22px;fill:var(--gold)}
+  .chip{
+    display:inline-block;font-size:12px;padding:2px 9px;border-radius:11px;
+    border:1px solid var(--gold);color:var(--gold);font-weight:700;margin-left:6px
+  }
+
+  /* ---------- Tabs ---------- */
+  .tabs-wrap{position:sticky;top:0;z-index:50;background:#fff;border-bottom:1px solid var(--border);box-shadow:var(--shadow)}
+  .tabs-list{
+    display:flex;flex-wrap:wrap;gap:2px;list-style:none;margin:0;padding:0;
+    overflow-x:auto;max-width:100%;
+  }
+  .tabs-list li{flex:1 1 130px;min-width:110px}
+  .tab-btn{
+    width:100%;display:block;padding:14px 6px;font-size:14px;font-weight:700;
+    color:var(--muted);background:#fff;border:none;border-bottom:3px solid transparent;
+    cursor:pointer;transition:.18s;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  }
+  .tab-btn:hover{color:var(--navy);background:#f4f6fb}
+  .tab-btn.active{color:var(--navy);border-bottom-color:var(--gold);background:#fdf7e7}
+  .tab-btn .k{display:block;font-size:12px;opacity:.75;margin-top:2px}
+
+  /* ---------- Panels ---------- */
+  .panel{display:none;padding:30px 24px 40px;max-width:1000px;margin:0 auto;animation:fadeIn .35s ease}
+  @keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+  .panel.active{display:block}
+  h2{color:var(--navy);font-size:22px;margin:0 0 10px;border-bottom:3px solid var(--gold);
+    padding-bottom:7px;display:inline-block}
+  h3{color:var(--navy-dark);font-size:18px;margin:24px 0 10px}
+  p{margin:0 0 14px}
+  .lead{font-size:17.5px;color:#374151}
+  .intro{background:#eef2f9;border-left:4px solid var(--accent);padding:14px 18px;border-radius:8px;margin:16px 0}
+
+  /* ---------- Layout helpers ---------- */
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:16px;margin:20px 0}
+  .card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:18px;box-shadow:var(--shadow)}
+  .card h4{margin:0 0 10px;font-size:16px;color:var(--navy)}
+  .card p{font-size:14.5px;color:#4b5563;margin:0 0 12px}
+  .step{display:flex;gap:12px;align-items:flex-start;margin:16px 0}
+  .num{flex-shrink:0;width:30px;height:30px;background:var(--navy);color:#fff;border-radius:50%;
+    display:grid;place-items:center;font-weight:800;font-size:15px}
+  .step .body{flex:1}
+  .step .body h4{margin:0 0 5px;font-size:16px;color:var(--navy)}
+  .step .body p{margin:0;font-size:14.5px;color:#4b5563}
+
+  /* ---------- Code blocks ---------- */
+  pre.code{position:relative;background:#1e222b;border-radius:8px;padding:14px 16px 14px 46px;
+    margin:16px 0;overflow-x:auto;line-height:1.55;font-size:14px;border:1px solid #2a2f3a}
+  pre.code code{color:#d7dae0;font-family:'Menlo','Monaco','Consolas','monospace'}
+  .copy-btn{
+    position:absolute;top:10px;right:10px;background:#374151;color:#fff;border:none;
+    border-radius:6px;padding:6px 10px;font-size:12.5px;cursor:pointer;font-weight:700
+  }
+  .copy-btn:hover{background:#4b5563}
+  .copy-btn.copied{background:var(--green)}
+  .lang{position:absolute;top:10px;left:12px;font-size:11px;color:#8b93a3;font-weight:800;text-transform:uppercase;letter-spacing:.05em}
+  .output{background:#f1f3f6;border:1px solid var(--border);border-radius:8px;padding:12px 16px;
+    margin:10px 0 20px;font-size:14px;color:#374151}
+  .output .lbl{display:block;font-size:12px;color:var(--muted);font-weight:800;text-transform:uppercase;margin-bottom:6px}
+  pre.output{white-space:pre-wrap;word-break:break-all;margin:0;font-family:'Menlo','Monaco','Consolas','monospace'}
+
+  /* ---------- Boxes ---------- */
+  .alert{border-radius:8px;padding:14px 18px;margin:16px 0;border:1px solid;animation:slide .3s}
+  @keyframes slide{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
+  .alert.info{background:#e7f1fb;border-color:#9ec8e6;color:#1f4e79}
+  .alert.warn{background:#fff7e6;border-color:#e9c46a;color:#7a5c00}
+  .alert.tip{background:#e7f6f0;border-color:#81c7a0;color:#1d5c44}
+  .alert.danger{background:#fdecea;border-color:#f5a7a3;color:#9b2226}
+  .alert b{display:block;margin-bottom:4px}
+
+  .coll{margin:16px 0;border:1px solid var(--border);border-radius:8px;overflow:hidden}
+  .coll input{display:none}
+  .coll-head{display:flex;justify-content:space-between;align-items:center;background:#f4f6fb;
+    padding:12px 16px;cursor:pointer;font-weight:700;color:var(--navy);user-select:none;border-bottom:1px solid var(--border)}
+  .coll-head::after{content:'▾';font-size:12px;color:var(--muted)}
+  .coll input:checked + .coll-head::after{content:'▸'}
+  .coll-body{padding:0 16px;max-height:0;overflow:hidden;transition:max-height .28s ease,padding .28s}
+  .coll input:checked + .coll-head + .coll-body{max-height:2000px;padding:14px 16px}
+
+  /* ---------- Quiz ---------- */
+  .quiz{border:2px dashed var(--border);border-radius:12px;padding:22px;background:#fff}
+  .quiz q{font-weight:700;color:var(--navy);font-size:16px;display:block;margin-bottom:12px}
+  .quiz label{display:block;padding:9px 12px;border:1px solid var(--border);border-radius:8px;
+    margin:6px 0;cursor:pointer;transition:.15s;background:#fff}
+  .quiz label:hover{background:#f4f6fb;border-color:var(--accent)}
+  .quiz input{margin-right:10px;accent-color:var(--navy)}
+  .quiz .act{margin-top:14px}
+  .quiz .btn{
+    background:var(--navy);color:#fff;border:none;border-radius:8px;padding:10px 22px;
+    font-weight:700;cursor:pointer;font-size:15px
+  }
+  .quiz .btn:hover{opacity:.92}
+  #quiz-result{margin-top:14px;font-weight:700;min-height:24px}
+
+  /* ---------- Buttons & misc ---------- */
+  .btn{
+    display:inline-flex;align-items:center;gap:6px;background:var(--green);color:#fff;
+    border:none;border-radius:8px;padding:9px 16px;font-weight:700;cursor:pointer;font-size:14.5px
+  }
+  .btn:hover{opacity:.92}
+  .btn.secondary{background:#fff;color:var(--navy);border:1px solid var(--border)}
+  .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);
+    background:#1f2937;color:#fff;padding:10px 18px;border-radius:8px;font-size:13.5px;
+    opacity:0;transition:opacity .3s;z-index:100;pointer-events:none}
+  .toast.show{opacity:1}
+
+  .progress{background:#fff;border:1px solid var(--border);border-radius:10px;padding:18px;margin:22px 0;box-shadow:var(--shadow)}
+  .progress h3{margin-top:0}
+  ul.ck{list-style:none;padding:0;display:grid;gap:8px}
+  ul.ck li{display:flex;align-items:center;gap:10px;font-size:14.5px}
+  ul.ck input{accent-color:var(--green);width:18px;height:18px}
+
+  .two{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+  @media(max-width:700px){.two{grid-template-columns:1fr}header.site-header h1{font-size:22px}
+    .tabs-list li{flex:1 1 100px;min-width:90px}.tab-btn{font-size:13px;padding:12px 4px}}
+
+  footer{margin-top:46px;padding:30px 24px;border-top:1px solid var(--border);color:var(--muted);
+    font-size:13.5px;text-align:center;background:#fff}
+  footer b{color:var(--navy)}
+  svg.inline{display:inline-block;vertical-align:middle}
+</style>
+</head>
+<body>
+
+<a href="#content" class="skip">跳至主要內容</a>
+
+<header class="site-header">
+  <span class="badge">教學教材 · 繁體中文</span>
+  <h1>Python 網頁爬蟲與資料視覺化</h1>
+  <p class="sub">從擷取資料、清理資料到繪製圖表 · 搭配 OpenCode 使用本地模型（Gemma 4 26B → Qwen 3）</p>
+  <div class="instructor">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3L1 9l11 6 9-4.91V17l2-1.3V9l7-6z"/><path d="M3 15.18V18l6-4 6 4v-2.82l-4-2.73z"/></svg>
+    國立清華大學數理教育研究所&nbsp;<b>李惠琦</b>&nbsp;<span class="chip">離線自含 HTML</span>
+  </div>
+</header>
+
+<nav class="tabs-wrap">
+  <ul class="tabs-list" role="tablist">
+    <li><button class="tab-btn active" data-tab="home" role="tab" aria-selected="true">首頁<span class="k">Welcome</span></button></li>
+    <li><button class="tab-btn" data-tab="unit1" role="tab">單元一<span class="k">環境安裝</span></button></li>
+    <li><button class="tab-btn" data-tab="unit2" role="tab">單元二<span class="k">網頁爬蟲</span></button></li>
+    <li><button class="tab-btn" data-tab="unit3" role="tab">單元三<span class="k">資料清理</span></button></li>
+    <li><button class="tab-btn" data-tab="unit4" role="tab">單元四<span class="k">資料視覺化</span></button></li>
+    <li><button class="tab-btn" data-tab="unit5" role="tab">單元五<span class="k">OpenCode 本地模型</span></button></li>
+    <li><button class="tab-btn" data-tab="unit6" role="tab">單元六<span class="k">完整實作</span></button></li>
+    <li><button class="tab-btn" data-tab="prompt" role="tab">教材 Prompt 說明<span class="k">製作這個教材</span></button></li>
+    <li><button class="tab-btn" data-tab="about" role="tab">關於<span class="k">參考與免責</span></button></li>
+  </ul>
+</nav>
+
+<div id="content" class="container">
+
+<!-- ===================== 首頁 ===================== -->
+<section id="home" class="panel active" aria-labelledby="t-home">
+  <h2 id="t-home">歡迎使用本教學</h2>
+  <div class="intro">
+    本教材適合「完全沒寫過爬蟲」的新手，從安裝 Python、設定 OpenCode 本地模型開始，一路做到擷取網頁資料、清理資料、繪製圖表。<br>
+    <b>特色：</b>單一 HTML 檔、全部圖片內嵌（SVG）、離線即可開啟、不引用任何外部圖片網址；每個程式區塊都有「複製」按鈕，並包含互動小測驗與進度核對表。
+  </div>
+
+  <h3>本教學會學到什麼？</h3>
+  <div class="grid">
+    <div class="card">
+      <h4>單元一 · 環境安裝</h4>
+      <p>安裝 Python 與必要套件（requests、beautifulsoup4、pandas、matplotlib），並將 OpenCode 設定為使用本地模型。</p>
+    </div>
+    <div class="card">
+      <h4>單元二 · 網頁爬蟲基礎</h4>
+      <p>用 requests 下載網頁、用 BeautifulSoup 解析 HTML，練習擷取標題、連結、表格資料。</p>
+    </div>
+    <div class="card">
+      <h4>單元三 · 資料清理</h4>
+      <p>用 pandas 處理缺失值、重複值、資料型別轉換，把爬下來的髒資料整理乾淨。</p>
+    </div>
+    <div class="card">
+      <h4>單元四 · 資料視覺化</h4>
+      <p>用 matplotlib 繪製柱狀圖、折線圖、圓餅圖，並學會儲存圖檔與中文字體處理。</p>
+    </div>
+    <div class="card">
+      <h4>單元五 · OpenCode 本地模型</h4>
+      <p>搭配 OpenCode 使用 Gemma 4 26B（第一模型：撰寫爬蟲程式碼）與 Qwen 3（第二模型：清理資料、解讀圖表）。</p>
+    </div>
+    <div class="card">
+      <h4>單元六 · 完整實作專案</h4>
+      <p>把爬蟲、清理、視覺化串接成一支可執行的 Python 腳本，產出分析報告。</p>
+    </div>
+  </div>
+
+  <h3>如何使用本網頁</h3>
+  <ol>
+    <li>頂部分頁籤點選要學習的單元。</li>
+    <li>每個程式區塊右上角有 <b>複製</b> 按鈕，貼到終端機或編輯器即可。</li>
+    <li>建議照順序閱讀；每個單元最後有「進度核對表」，勾選完可記住進度（儲存在本機瀏覽器）。</li>
+    <li>互動小測驗可自行檢查理解程度。</li>
+  </ol>
+
+  <div class="alert info"><b>關於本 OpenCode 實例的模型：</b>此環境預載 Flint 40B、Nemotron 3.5 等模型，但 <b>未預載 Gemma 4 26B 與 Qwen 3</b>。教材以下方兩模型為主講解；若您的 OpenCode 沒有這兩模型，請在 OpenCode 設定中新增本地模型供應商（例如 Ollama、LM Studio），或先用可用模型練習，再將對話切換到目標模型。</div>
+
+  <div class="progress">
+    <h3>📋 學習進度核對表</h3>
+    <ul class="ck" id="checklist">
+      <li><input type="checkbox" id="c1"><label for="c1">安裝 Python 並確認版本</label></li>
+      <li><input type="checkbox" id="c2"><label for="c2">安裝 OpenCode 並設定本地模型</label></li>
+      <li><input type="checkbox" id="c3"><label for="c3">安裝 requests / beautifulsoup4 / pandas / matplotlib</label></li>
+      <li><input type="checkbox" id="c4"><label for="c4">跑通單一網頁爬蟲範例</label></li>
+      <li><input type="checkbox" id="c5"><label for="c5">用 pandas 清理一份資料</label></li>
+      <li><input type="checkbox" id="c6"><label for="c6">繪製並儲存一張圖表</label></li>
+      <li><input type="checkbox" id="c7"><label for="c7">完整爬取→清理→視覺化專案跑通</label></li>
+    </ul>
+    <p style="margin-top:10px;font-size:13px;color:var(--muted)">進度儲存在本機瀏覽器，離開頁面再回來仍會保留。</p>
+  </div>
+</section>
+
+<!-- ===================== 單元一 ===================== -->
+<section id="unit1" class="panel" aria-labelledby="t-unit1">
+  <h2 id="t-unit1">單元一：環境安裝</h2>
+  <p class="lead">第一步：準備 Python 與 OpenCode，安裝爬蟲與視覺化所需套件。</p>
+
+  <div class="step">
+    <div class="num">1</div>
+    <div class="body">
+      <h4>檢查 / 安裝 Python</h4>
+      <p>在終端機（macOS / Linux 為 Terminal，Windows 為 PowerShell）輸入：</p>
+<pre class="code"><span class="lang">shell</span><button class="copy-btn" data-clip="python3 --version">複製</button><code>python3 --version</code></pre>
+      <p>若顯示 <code>Python 3.x.x</code> 即可；若未安裝，請到 <code>python.org</code> 下載，或 macOS 使用 <code>brew install python</code>。</p>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="num">2</div>
+    <div class="body">
+      <h4>安裝 OpenCode（AI 編碼助手）</h4>
+      <p>OpenCode 可在本機呼叫本地模型協助撰寫程式碼。安裝方式：</p>
+<pre class="code"><span class="lang">shell</span><button class="copy-btn" data-clip="npm install -g @opencode/ai">複製</button><code>npm install -g @opencode/ai</code></pre>
+      <p>安裝完成後輸入 <code>opencode</code> 啟動。在設定中加入本地模型：</p>
+      <ul>
+        <li><b>第一模型：Gemma 4 26B</b> — 主要用於生成爬蟲與分析程式碼。</li>
+        <li><b>第二模型：Qwen 3</b> — 主要用於資料清理建議與圖表解讀說明。</li>
+      </ul>
+      <div class="alert warn"><b>提醒：</b>若此 OpenCode 實例沒有預載 Gemma 4 26B / Qwen 3，請在 OpenCode 設定新增模型供應商（如 Ollama、LM Studio），或先使用可用模型（Flint 40B、Nemotron 3.5 等）練習切換模型。</div>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="num">3</div>
+    <div class="body">
+      <h4>安裝 Python 套件</h4>
+      <p>一次安裝本教學用到的所有套件：</p>
+<pre class="code"><span class="lang">shell</span><button class="copy-btn" data-clip="pip install requests beautifulsoup4 pandas matplotlib lxml">複製</button><code>pip install requests beautifulsoup4 pandas matplotlib lxml</code></pre>
+      <p>macOS 若遇權限問題，可用 <code>pip3 install --user ...</code>；Windows 可在 PowerShell 直接執行上述指令。</p>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="num">4</div>
+    <div class="body">
+      <h4>驗證安裝是否成功</h4>
+      <p>建立一個 <code>check_env.py</code> 並執行：</p>
+<pre class="code"><span class="lang">python</span><button class="copy-btn" data-clip="import requests, bs4, pandas, matplotlib
+print('requests', requests.__version__)
+print('beautifulsoup4 OK')
+print('pandas', pandas.__version__)
+print('matplotlib', matplotlib.__version__)
+print('環境安裝完成')">複製</button><code>import requests, bs4, pandas, matplotlib
+print('requests', requests.__version__)
+print('beautifulsoup4 OK')
+print('pandas', pandas.__version__)
+print('matplotlib', matplotlib.__version__)
+print('環境安裝完成')</code></pre>
+<pre class="output"><span class="lbl">預期輸出</span>requests 2.x.x
+beautifulsoup4 OK
+pandas 2.x.x
+matplotlib 3.x.x
+環境安裝完成</pre>
+    </div>
+  </div>
+
+  <div class="coll">
+    <input type="checkbox" id="u1-tip">
+    <label class="coll-head" for="u1-tip">💡 常見問題：macOS「沒有開發者工具」</label>
+    <div class="coll-body">
+      <p>若終端機出現 <code>xcode-select: note: No developer tools were found</code>，請執行 <code>xcode-select --install</code> 安裝命令列工具後再裝 Python 套件。</p>
+    </div>
+  </div>
+
+  <div class="quiz">
+    <q>單元一小測：安裝完畢後，用來一次安裝 requests、beautifulsoup4、pandas、matplotlib 的指令是？</q>
+    <label><input type="radio" name="q1" value="a"> pip install requests beautifulsoup4 pandas matplotlib</label>
+    <label><input type="radio" name="q1" value="b"> install python web scraping</label>
+    <label><input type="radio" name="q1" value="c"> npm install crawler</label>
+    <div class="act"><button class="btn" onclick="checkQuiz('q1','a','quiz1')">檢查答案</button><span id="quiz1" style="margin-left:10px;font-weight:700"></span></div>
+  </div>
+
+  <div class="progress">
+    <h3>單元一進度</h3>
+    <ul class="ck">
+      <li><input type="checkbox" id="u1a"><label for="u1a">Python 已安裝並顯示版本</label></li>
+      <li><input type="checkbox" id="u1b"><label for="u1b">OpenCode 已安裝並可啟動</label></li>
+      <li><input type="checkbox" id="u1c"><label for="u1c">requests / beautifulsoup4 / pandas / matplotlib 已安裝</label></li>
+      <li><input type="checkbox" id="u1d"><label for="u1c">check_env.py 執行無誤</label></li>
+    </ul>
+  </div>
+</section>
+
+<!-- ===================== 單元二 ===================== -->
+<section id="unit2" class="panel" aria-labelledby="t-unit2">
+  <h2 id="t-unit2">單元二：網頁爬蟲基礎</h2>
+  <p class="lead">學習用 Python 下載網頁、解析 HTML，擷取你想要的資料。</p>
+
+  <h3>1. 用 requests 下載網頁</h3>
+  <p><code>requests</code> 是 Python 最常用的 HTTP 套件，可下載網頁原始碼。</p>
+<pre class="code"><span class="lang">python</span><button class="copy-btn" data-clip="import requests
+
+url = 'https://example.com'
+resp = requests.get(url, headers={'User-Agent': 'Mozilla/5.0'})
+print('狀態碼：', resp.status_code)
+print('網頁長度（字元）：', len(resp.text))
+print(resp.text[:300])">複製</button><code>import requests
+
+url = 'https://example.com'
+resp = requests.get(url, headers={'User-Agent': 'Mozilla/5.0'})
+print('狀態碼：', resp.status_code)
+print('網頁長度（字元）：', len(resp.text))
+print(resp.text[:300])</code></pre>
+<pre class="output"><span class="lbl">預期輸出（範例）</span>狀態碼： 200
+網頁長度（字元）： 1256
+&lt;!doctype html&gt;
+&lt;html&gt;
+&lt;head&gt;
+    &lt;title&gt;Example Domain&lt;/title&gt;</pre>
+<div class="alert warn"><b>爬蟲禮儀（務必遵守）：</b>查看網站的 <code>/robots.txt</code>；不要短時間大量請求（可加入 <code>time.sleep(1)</code>）；只擷取公開資料，尊重著作權與隱私。</div>
+
+  <h3>2. 用 BeautifulSoup 解析 HTML</h3>
+  <p>為了離線練習，我們先把一個「範例網頁」儲存為本地檔案 <code>sample.html</code>，再從檔案讀取練習（不需要網路）。</p>
+<pre class="code"><span class="lang">python</span><button class="copy-btn" data-clip="html_content = '''&lt;!DOCTYPE html&gt;
+&lt;html lang="zh-TW"&gt;
+&lt;head&gt;&lt;meta charset="UTF-8"&gt;&lt;title>範例書店</title>&lt;/head&gt;
+&lt;body&gt;
+  &lt;h1 class="site-title"&gt;📚 範例線上書店&lt;/h1&gt;
+  &lt;table class="books"&gt;
+    &lt;tr&gt;&lt;th>書名&lt;/th&gt;&lt;th>作者&lt;/th&gt;&lt;th>價格&lt;/th&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td&gt;Python 入門&lt;/td&gt;&lt;td&gt;小明&lt;/td&gt;&lt;td class="price"&gt;380&lt;/td&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td&gt;資料視覺化實戰&lt;/td&gt;&lt;td&gt;小華&lt;/td&gt;&lt;td class="price"&gt;520&lt;/td&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td&gt;爬蟲從零開始&lt;/td&gt;&lt;td&gt;小美&lt;/td&gt;&lt;td class="price"&gt;450&lt;/td&gt;&lt;/tr&gt;
+  &lt;/table&gt;
+  &lt;a href="/about"&gt;關於我們&lt;/a&gt;
+  &lt;a href="/contact"&gt;聯絡&lt;/a&gt;
+&lt;/body&gt;
+&lt;/html&gt;'''
+with open('sample.html', 'w', encoding='utf-8') as f:
+    f.write(html_content)
+print('sample.html 已建立')">複製</button><code>html_content = '''&lt;!DOCTYPE html&gt;
+&lt;html lang="zh-TW"&gt;
+&lt;head&gt;&lt;meta charset="UTF-8"&gt;&lt;title>範例書店</title>&lt;/head&gt;
+&lt;body&gt;
+  &lt;h1 class="site-title"&gt;📚 範例線上書店&lt;/h1&gt;
+  &lt;table class="books"&gt;
+    &lt;tr&gt;&lt;th>書名&lt;/th&gt;&lt;th>作者&lt;/th&gt;&lt;th>價格&lt;/th&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td&gt;Python 入門&lt;/td&gt;&lt;td&gt;小明&lt;/td&gt;&lt;td class="price"&gt;380&lt;/td&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td&gt;資料視覺化實戰&lt;/td&gt;&lt;td&gt;小華&lt;/td&gt;&lt;td class="price"&gt;520&lt;/td&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td&gt;爬蟲從零開始&lt;/td&gt;&lt;td&gt;小美&lt;/td&gt;&lt;td class="price"&gt;450&lt;/td&gt;&lt;/tr&gt;
+  &lt;/table&gt;
+  &lt;a href="/about"&gt;關於我們&lt;/a&gt;
+  &lt;a href="/contact"&gt;聯絡&lt;/a&gt;
+&lt;/body&gt;
+&lt;/html&gt;'''
+with open('sample.html', 'w', encoding='utf-8') as f:
+    f.write(html_content)
+print('sample.html 已建立')</code></pre>
+
+<pre class="code"><span class="lang">python</span><button class="copy-btn" data-clip="from bs4 import BeautifulSoup
+
+with open('sample.html', encoding='utf-8') as f:
+    soup = BeautifulSoup(f, 'html.parser')
+
+# 取標題
+title = soup.find('h1', class_='site-title').get_text(strip=True)
+print('網站標題：', title)
+
+# 取所有連結
+for a in soup.find_all('a'):
+    print('連結：', a.get_text(strip=True), '->', a.get('href'))
+
+# 取價格欄位
+prices = [td.get_text(strip=True) for td in soup.select('td.price')]
+print('價格清單：', prices)">複製</button><code>from bs4 import BeautifulSoup
+
+with open('sample.html', encoding='utf-8') as f:
+    soup = BeautifulSoup(f, 'html.parser')
+
+# 取標題
+title = soup.find('h1', class_='site-title').get_text(strip=True)
+print('網站標題：', title)
+
+# 取所有連結
+for a in soup.find_all('a'):
+    print('連結：', a.get_text(strip=True), '->', a.get('href'))
+
+# 取價格欄位
+prices = [td.get_text(strip=True) for td in soup.select('td.price')]
+print('價格清單：', prices)</code></pre>
+<pre class="output"><span class="lbl">預期輸出</span>網站標題： 📚 範例線上書店
+連結： 關於我們 -&gt; /about
+連結： 聯絡 -&gt; /contact
+價格清單： ['380', '520', '450']</pre>
+
+  <div class="two">
+    <div class="card">
+      <h4>常用 BeautifulSoup 方法</h4>
+      <ul>
+        <li><code>soup.find(tag, class_=...)</code> — 找第一個符合的元素</li>
+        <li><code>soup.find_all(...)</code> — 找全部符合的元素</li>
+        <li><code>soup.select('CSS 選擇器')</code> — 如 <code>select('td.price')</code></li>
+        <li><code>.get_text(strip=True)</code> — 取出純文字</li>
+        <li><code>.get('href')</code> — 取出屬性值</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h4>💡 OpenCode 提問範例</h4>
+      <p>在 OpenCode 對話中切換到 <b>Gemma 4 26B</b>，輸入：</p>
+      <blockquote style="background:#f1f3f6;padding:10px 14px;border-radius:6px;color:#374151">請用 Python requests 與 BeautifulSoup，從 sample.html 擷取所有書籍的書名、作者、價格，並印出清單。</blockquote>
+    </div>
+  </div>
+
+  <div class="quiz">
+    <q>單元二小測：BeautifulSoup 中用來取出「純文字」並去除前後空白的方法是？</q>
+    <label><input type="radio" name="q2" value="a"> .get_html()</label>
+    <label><input type="radio" name="q2" value="b"> .get_text(strip=True)</label>
+    <label><input type="radio" name="q2" value="c"> .text_content()</label>
+    <div class="act"><button class="btn" onclick="checkQuiz('q2','b','quiz2')">檢查答案</button><span id="quiz2" style="margin-left:10px;font-weight:700"></span></div>
+  </div>
+
+  <div class="progress">
+    <h3>單元二進度</h3>
+    <ul class="ck">
+      <li><input type="checkbox" id="u2a"><label for="u2a">會使用 requests.get 下載網頁</label></li>
+      <li><input type="checkbox" id="u2b"><label for="u2b">會用 BeautifulSoup 找元素與選擇器</label></li>
+      <li><input type="checkbox" id="u2c"><label for="u2c">已從 sample.html 擷取書名、作者、價格</label></li>
+    </ul>
+  </div>
+</section>
+
+<!-- ===================== 單元三 ===================== -->
+<section id="unit3" class="panel" aria-labelledby="t-unit3">
+  <h2 id="t-unit3">單元三：資料清理</h2>
+  <p class="lead">爬下來的資料通常「髒髒的」，用 pandas 把它整理乾淨。</p>
+
+  <h3>1. 建立練習資料（含缺失值、重複值、型別問題）</h3>
+<pre class="code"><span class="lang">python</span><button class="copy-btn" data-clip="import pandas as pd
+
+data = '''書名,作者,價格,出版年份
+Python 入門,小明,380,2021
+資料視覺化實戰,,520,2022
+爬蟲從零開始,小美,450,abcd
+Python 入門,小明,380,2021
+機器學習基礎,小華,,2023
+'''
+
+with open('books.csv', 'w', encoding='utf-8') as f:
+    f.write(data)
+print('books.csv 已建立')">複製</button><code>import pandas as pd
+
+data = '''書名,作者,價格,出版年份
+Python 入門,小明,380,2021
+資料視覺化實戰,,520,2022
+爬蟲從零開始,小美,450,abcd
+Python 入門,小明,380,2021
+機器學習基礎,小華,,2023
+'''
+
+with open('books.csv', 'w', encoding='utf-8') as f:
+    f.write(data)
+print('books.csv 已建立')</code></pre>
+
+<pre class="code"><span class="lang">python</span><button class="copy-btn" data-clip="df = pd.read_csv('books.csv')
+print('=== 原始資料 ===')
+print(df)
+print()
+print(df.info())">複製</button><code>df = pd.read_csv('books.csv')
+print('=== 原始資料 ===')
+print(df)
+print()
+print(df.info())</code></pre>
+<pre class="output"><span class="lbl">預期輸出（範例）</span>=== 原始資料 ===
+                 書名    價格  出版年份
+0        Python 入門  小明  380  2021
+1  資料視覺化實戰  NaN  520  2022
+2   爬蟲從零開始  小美  450  abcd
+3        Python 入門  小明  380  2021
+4   機器學習基礎  小華  NaN  2023
+
+&lt;class 'pandas.core.frame.DataFrame'&gt;
+...
+出版年份    5 non-null object
+dtypes: object(4)</pre>
+
+  <h3>2. 清理步驟</h3>
+  <div class="step">
+    <div class="num">1</div>
+    <div class="body">
+      <h4>移除重複列</h4>
+<pre class="code"><span class="lang">python</span><button class="copy-btn" data-clip="df = df.drop_duplicates()">複製</button><code>df = df.drop_duplicates()</code></pre>
+    </div>
+  </div>
+  <div class="step">
+    <div class="num">2</div>
+    <div class="body">
+      <h4>處理缺失值（作者填「未知」，價格填 0）</h4>
+<pre class="code"><span class="lang">python</span><button class="copy-btn" data-clip="df['作者'] = df['作者'].fillna('未知')
+df['價格'] = pd.to_numeric(df['價格'], errors='coerce').fillna(0).astype(int)">複製</button><code>df['作者'] = df['作者'].fillna('未知')
+df['價格'] = pd.to_numeric(df['價格'], errors='coerce').fillna(0).astype(int)</code></pre>
+    </div>
+  </div>
+  <div class="step">
+    <div class="num">3</div>
+    <div class="body">
+      <h4>檢視清理後資料並儲存</h4>
+<pre class="code"><span class="lang">python</span><button class="copy-btn" data-clip="print('=== 清理後 ===')
+print(df)
+df.to_csv('books_clean.csv', index=False, encoding='utf-8-sig')
+print('已儲存 books_clean.csv')">複製</button><code>print('=== 清理後 ===')
+print(df)
+df.to_csv('books_clean.csv', index=False, encoding='utf-8-sig')
+print('已儲存 books_clean.csv')</code></pre>
+<pre class="output"><span class="lbl">預期輸出（範例）</span>=== 清理後 ===
+                 書名     作者  價格  出版年份
+0        Python 入門     小明  380  2021
+1  資料視覺化實戰   未知  520  2022
+2   爬蟲從零開始    小美  450  abcd
+4   機器學習基礎    小華    0  2023
+已儲存 books_clean.csv</pre>
+<div class="alert tip"><b>小撇步：</b><code>errors='coerce'</code> 會把轉換失敗的值（如 'abcd'）變成 NaN，再用 <code>fillna</code> 補上，就不會整個程式報錯。</div>
+
+  <div class="quiz">
+    <q>單元三小測：pandas 中用來「刪除重複列」的方法是？</q>
+    <label><input type="radio" name="q3" value="a"> df.drop_duplicates()</label>
+    <label><input type="radio" name="q3" value="b"> df.remove_dup()</label>
+    <label><input type="radio" name="q3" value="c"> df.unique_rows()</label>
+    <div class="act"><button class="btn" onclick="checkQuiz('q3','a','quiz3')">檢查答案</button><span id="quiz3" style="margin-left:10px;font-weight:700"></span></div>
+  </div>
+
+  <div class="progress">
+    <h3>單元三進度</h3>
+    <ul class="ck">
+      <li><input type="checkbox" id="u3a"><label for="u3a">會用 pandas 讀取 CSV</label></li>
+      <li><input type="checkbox" id="u3b"><label for="u3b">會處理缺失值（fillna）</label></li>
+      <li><input type="checkbox" id="u3c"><label for="u3c">會移除重複列與轉換資料型別</label></li>
+    </ul>
+  </div>
+</section>
+
+<!-- ===================== 單元四 ===================== -->
+<section id="unit4" class="panel" aria-labelledby="t-unit4">
+  <h2 id="t-unit4">單元四：資料視覺化</h2>
+  <p class="lead">用 matplotlib 把清理後的資料畫成圖表。</p>
+
+  <h3>1. 繪製柱狀圖：各書籍價格</h3>
+<pre class="code"><span class="lang">python</span><button class="copy-btn" data-clip="import pandas as pd
+import matplotlib.pyplot as plt
+
+df = pd.read_csv('books_clean.csv')
+
+plt.figure(figsize=(7,4))
+plt.bar(df['書名'], df['價格'], color='#2e86ab')
+plt.title('各書籍價格')
+plt.ylabel('價格（元）')
+plt.xticks(rotation=15)
+plt.tight_layout()
+plt.savefig('price_bar.png', dpi=150)
+plt.show()
+print('圖表已儲存為 price_bar.png')">複製</button><code>import pandas as pd
+import matplotlib.pyplot as plt
+
+df = pd.read_csv('books_clean.csv')
+
+plt.figure(figsize=(7,4))
+plt.bar(df['書名'], df['價格'], color='#2e86ab')
+plt.title('各書籍價格')
+plt.ylabel('價格（元）')
+plt.xticks(rotation=15)
+plt.tight_layout()
+plt.savefig('price_bar.png', dpi=150)
+plt.show()
+print('圖表已儲存為 price_bar.png')</code></pre>
+
+  <div style="text-align:center;margin:18px 0">
+    <svg viewBox="0 0 600 320" style="width:100%;max-width:560px;border:1px solid var(--border);border-radius:10px;background:#fff" role="img" aria-label="各書籍價格柱狀圖示範">
+      <rect width="600" height="320" fill="#fff"/>
+      <text x="300" y="30" text-anchor="middle" font-family="sans-serif" font-size="18" font-weight="700" fill="#1f3a5f">各書籍價格（示範圖表）</text>
+      <g font-family="sans-serif" font-size="13" fill="#4b5563">
+        <text x="90" y="290" text-anchor="middle">Python 入門</text>
+        <text x="220" y="290" text-anchor="middle">資料視覺化實戰</text>
+        <text x="370" y="290" text-anchor="middle">爬蟲從零開始</text>
+        <text x="510" y="290" text-anchor="middle">機器學習基礎</text>
+        <text x="20" y="250" text-anchor="end">500</text>
+        <text x="20" y="170" text-anchor="end">250</text>
+        <text x="20" y="90" text-anchor="end">0</text>
+      </g>
+      <rect x="55" y="200" width="70" height="70" fill="#2e86ab"/>
+      <rect x="185" y="130" width="70" height="150" fill="#2e86ab"/>
+      <rect x="335" y="160" width="70" height="120" fill="#2e86ab"/>
+      <rect x="475" y="240" width="70" height="30" fill="#2e86ab"/>
+      <text x="90" y="190" text-anchor="middle" fill="#fff" font-size="12">380</text>
+      <text x="220" y="120" text-anchor="middle" fill="#fff" font-size="12">520</text>
+      <text x="370" y="150" text-anchor="middle" fill="#fff" font-size="12">450</text>
+      <text x="510" y="230" text-anchor="middle" fill="#fff" font-size="12">0</text>
+      <line x1="50" y1="250" x2="545" y2="250" stroke="#9ca3af" stroke-width="1"/>
+      <line x1="50" y1="250" x2="50" y2="60" stroke="#9ca3af" stroke-width="1"/>
+    </svg>
+    <p style="margin-top:8px;font-size:13px;color:var(--muted)">範例柱狀圖（matplotlib 產出示意）</p>
+  </div>
+
+  <h3>2. 常見圖表類型</h3>
+  <div class="grid">
+    <div class="card">
+      <h4>折線圖</h4>
+      <p>適合顯示隨時間變化的趨勢（例如每日銷售額）。</p>
+      <code style="font-size:13px">plt.plot(x, y, marker='o')</code>
+    </div>
+    <div class="card">
+      <h4>圓餅圖</h4>
+      <p>適合顯示各類別占比（例如不同出版社的書籍比例）。</p>
+      <code style="font-size:13px">plt.pie(values, labels=labels, autopct='%1.1f%%')</code>
+    </div>
+    <div class="card">
+      <h4>中文字體</h4>
+      <p>matplotlib 預設可能顯示不出中文，可設定字體，例如 <code>plt.rcParams['font.family'] = 'Microsoft JhengHei'</code>（Windows）或安裝 Noto Sans CJK。</p>
+    </div>
+  </div>
+
+  <div class="alert info"><b>圖片輸出：</b>用 <code>plt.savefig('圖名.png', dpi=150)</code> 可將圖表儲存為圖檔，方便放入報告或簡報。</div>
+
+  <div class="quiz">
+    <q>單元四小測：用來將圖表儲存為圖檔的 matplotlib 函數是？</q>
+    <label><input type="radio" name="q4" value="a"> plt.save()</label>
+    <label><input type="radio" name="q4" value="b"> plt.savefig('檔名.png')</label>
+    <label><input type="radio" name="q4" value="c"> plt.export()</label>
+    <div class="act"><button class="btn" onclick="checkQuiz('q4','b','quiz4')">檢查答案</button><span id="quiz4" style="margin-left:10px;font-weight:700"></span></div>
+  </div>
+
+  <div class="progress">
+    <h3>單元四進度</h3>
+    <ul class="ck">
+      <li><input type="checkbox" id="u4a"><label for="u4a">會繪製柱狀圖與折線圖</label></li>
+      <li><input type="checkbox" id="u4b"><label for="u4b">會儲存圖表為圖檔</label></li>
+      <li><input type="checkbox" id="u4c"><label for="u4c">知道中文字體處理方式</label></li>
+    </ul>
+  </div>
+</section>
+
+<!-- ===================== 單元五 ===================== -->
+<section id="unit5" class="panel" aria-labelledby="t-unit5">
+  <h2 id="t-unit5">單元五：搭配 OpenCode 使用本地模型</h2>
+  <p class="lead">本單元說明如何在 OpenCode 對話中，指定 <b>第一模型 Gemma 4 26B</b> 與 <b>第二模型 Qwen 3</b> 分工協作。</p>
+
+  <h3>建議分工</h3>
+  <table style="width:100%;border-collapse:collapse;margin:14px 0;font-size:14.5px">
+    <thead>
+      <tr style="background:#eef2f9"><th style="text-align:left;padding:10px;border:1px solid var(--border)">模型</th><th style="text-align:left;padding:10px;border:1px solid var(--border)">建議用途</th></tr>
+    </thead>
+    <tbody>
+      <tr><td style="padding:10px;border:1px solid var(--border);font-weight:700;color:var(--navy)">第一模型：Gemma 4 26B</td><td style="padding:10px;border:1px solid var(--border)">撰寫爬蟲程式碼、解析 HTML、串接完整腳本</td></tr>
+      <tr><td style="padding:10px;border:1px solid var(--border);font-weight:700;color:var(--navy)">第二模型：Qwen 3</td><td style="padding:10px;border:1px solid var(--border)">資料清理建議、錯誤排除、圖表結果解讀、撰寫說明文字</td></tr>
+    </tbody>
+  </table>
+
+  <div style="text-align:center;margin:22px 0">
+    <svg viewBox="0 0 640 300" style="width:100%;max-width:600px;border:1px solid var(--border);border-radius:10px;background:#fff" role="img" aria-label="OpenCode 本地模型分工架構圖">
+      <rect width="640" height="300" fill="#fff"/>
+      <text x="320" y="34" text-anchor="middle" font-family="sans-serif" font-size="17" font-weight="700" fill="#1f3a5f">OpenCode 對話流程（本地模型）</text>
+      <!-- User -->
+      <rect x="30" y="70" width="170" height="110" rx="10" fill="#1f3a5f"/>
+      <text x="115" y="100" text-anchor="middle" fill="#fff" font-family="sans-serif" font-size="14" font-weight="700">使用者</text>
+      <text x="115" y="125" text-anchor="middle" fill="#d7e3f4" font-family="sans-serif" font-size="12">「幫我寫爬蟲程式」</text>
+      <text x="115" y="150" text-anchor="middle" fill="#d7e3f4" font-family="sans-serif" font-size="12">→ Gemma 4 26B</text>
+      <!-- Gemma -->
+      <rect x="230" y="70" width="180" height="110" rx="10" fill="#2e86ab"/>
+      <text x="320" y="100" text-anchor="middle" fill="#fff" font-family="sans-serif" font-size="14" font-weight="700">Gemma 4 26B</text>
+      <text x="320" y="125" text-anchor="middle" fill="#e3f0f8" font-family="sans-serif" font-size="12">第一模型：產出程式碼</text>
+      <!-- Qwen -->
+      <rect x="430" y="70" width="180" height="110" rx="10" fill="#c9a227"/>
+      <text x="520" y="100" text-anchor="middle" fill="#5c4a00" font-family="sans-serif" font-size="14" font-weight="700">Qwen 3</text>
+      <text x="520" y="125" text-anchor="middle" fill="#fff3d6" font-family="sans-serif" font-size="12">第二模型：清理/解讀</text>
+      <line x1="200" y1="125" x2="228" y2="125" stroke="#6b7280" stroke-width="2" marker-end="url(#a)"/>
+      <line x1="410" y1="125" x2="428" y2="125" stroke="#6b7280" stroke-width="2" marker-end="url(#a)"/>
+      <defs><marker id="a" markerWidth="8" markerHeight="8" refX="7" refY="3.5" orient="auto"><polygon points="0 0, 8 3.5, 0 7" fill="#6b7280"/></marker></defs>
+      <text x="320" y="225" text-anchor="middle" fill="#4b5563" font-family="sans-serif" font-size="13">在 OpenCode 對話框切換模型（/model 或設定），分別對兩模型下指令</text>
+    </svg>
+  </div>
+
+  <h3>3. 如何切換模型與下指令</h3>
+  <ol>
+    <li>啟動 OpenCode：在終端機輸入 <code>opencode</code>。</li>
+    <li>在對話中指定模型（例如輸入 <code>/model</code> 選單，或依你的 OpenCode 版本在設定選模型）。</li>
+    <li>先對 <b>Gemma 4 26B</b> 下爬蟲程式碼請求，再對 <b>Qwen 3</b> 下資料清理與圖表解讀請求。</li>
+  </ol>
+
+  <h4>可複製的 Prompt 範例</h4>
+  <div class="step">
+    <div class="num">1</div>
+    <div class="body">
+      <h4>對 Gemma 4 26B（第一模型）：寫爬蟲</h4>
+<pre class="code"><span class="lang">text</span><button class="copy-btn" data-clip="請用 Python requests 與 BeautifulSoup，從 sample.html 擷取所有書籍的書名、作者、價格，並以 pandas DataFrame 印出，程式碼請加中文註解。">複製</button><code>請用 Python requests 與 BeautifulSoup，從 sample.html 擷取所有書籍的書名、作者、價格，並以 pandas DataFrame 印出，程式碼請加中文註解。</code></pre>
+    </div>
+  </div>
+  <div class="step">
+    <div class="num">2</div>
+    <div class="body">
+      <h4>對 Qwen 3（第二模型）：清理與解讀</h4>
+<pre class="code"><span class="lang">text</span><button class="copy-btn" data-clip="我有這份爬下來的書籍資料（含缺失值與重複值），請用 pandas 寫出清理步驟：移除重複、填補缺失、轉換價格為數字，並說明每一步的理由。">複製</button><code>我有這份爬下來的書籍資料（含缺失值與重複值），請用 pandas 寫出清理步驟：移除重複、填補缺失、轉換價格為數字，並說明每一步的理由。</code></pre>
+    </div>
+  </div>
+
+  <div class="alert warn"><b>本實例模型狀態：</b>此 OpenCode 環境目前可用模型為 Flint 40B、Nemotron 3.5 等，<b>未預載 Gemma 4 26B 與 Qwen 3</b>。請在 OpenCode 設定中新增本地模型（如 Ollama、LM Studio）並載入這兩模型；若暫時無法取得，可先用 Flint 40B / Nemotron 3.5 練習相同流程。</div>
+
+  <div class="progress">
+    <h3>單元五進度</h3>
+    <ul class="ck">
+      <li><input type="checkbox" id="u5a"><label for="u5a">OpenCode 已啟動並能切換模型</label></li>
+      <li><input type="checkbox" id="u5b"><label for="u5b">已設定第一模型 Gemma 4 26B（或替代模型）</label></li>
+      <li><input type="checkbox" id="u5c"><label for="u5c">已設定第二模型 Qwen 3（或替代模型）</label></li>
+      <li><input type="checkbox" id="u5d"><label for="u5d">分別對兩模型下過指令並取得回覆</label></li>
+    </ul>
+  </div>
+</section>
+
+<!-- ===================== 單元六 ===================== -->
+<section id="unit6" class="panel" aria-labelledby="t-unit6">
+  <h2 id="t-unit6">單元六：完整實作專案</h2>
+  <p class="lead">把爬蟲、清理、視覺化串接成一支可執行的 Python 腳本。</p>
+
+  <h3>完整腳本：project.py</h3>
+<pre class="code"><span class="lang">python</span><button class="copy-btn" data-clip="import requests
+from bs4 import BeautifulSoup
+import pandas as pd
+import matplotlib.pyplot as plt
+
+# 1. 擷取（此處以本地 sample.html 練習；實際上線可改用 requests.get(url)）
+with open('sample.html', encoding='utf-8') as f:
+    soup = BeautifulSoup(f, 'html.parser')
+
+rows = []
+for tr in soup.select('table.books tr')[1:]:
+    cols = tr.find_all('td')
+    if len(cols) == 3:
+        rows.append({
+            '書名': cols[0].get_text(strip=True),
+            '作者': cols[1].get_text(strip=True),
+            '價格': cols[2].get_text(strip=True),
+        })
+
+df = pd.DataFrame(rows)
+
+# 2. 清理
+df = df.drop_duplicates()
+df['作者'] = df['作者'].fillna('未知')
+df['價格'] = pd.to_numeric(df['價格'], errors='coerce').fillna(0).astype(int)
+df.to_csv('books_clean.csv', index=False, encoding='utf-8-sig')
+
+# 3. 視覺化
+plt.rcParams['font.family'] = 'Microsoft JhengHei'
+plt.figure(figsize=(7,4))
+plt.bar(df['書名'], df['價格'], color='#2e86ab')
+plt.title('各書籍價格')
+plt.ylabel('價格（元）')
+plt.xticks(rotation=15)
+plt.tight_layout()
+plt.savefig('price_bar.png', dpi=150)
+plt.show()
+
+print('=== 最終清理後資料 ===')
+print(df)
+print('圖表已儲存：price_bar.png')">複製</button><code>import requests
+from bs4 import BeautifulSoup
+import pandas as pd
+import matplotlib.pyplot as plt
+
+# 1. 擷取（此處以本地 sample.html 練習；實際上線可改用 requests.get(url)）
+with open('sample.html', encoding='utf-8') as f:
+    soup = BeautifulSoup(f, 'html.parser')
+
+rows = []
+for tr in soup.select('table.books tr')[1:]:
+    cols = tr.find_all('td')
+    if len(cols) == 3:
+        rows.append({
+            '書名': cols[0].get_text(strip=True),
+            '作者': cols[1].get_text(strip=True),
+            '價格': cols[2].get_text(strip=True),
+        })
+
+df = pd.DataFrame(rows)
+
+# 2. 清理
+df = df.drop_duplicates()
+df['作者'] = df['作者'].fillna('未知')
+df['價格'] = pd.to_numeric(df['價格'], errors='coerce').fillna(0).astype(int)
+df.to_csv('books_clean.csv', index=False, encoding='utf-8-sig')
+
+# 3. 視覺化
+plt.rcParams['font.family'] = 'Microsoft JhengHei'
+plt.figure(figsize=(7,4))
+plt.bar(df['書名'], df['價格'], color='#2e86ab')
+plt.title('各書籍價格')
+plt.ylabel('價格（元）')
+plt.xticks(rotation=15)
+plt.tight_layout()
+plt.savefig('price_bar.png', dpi=150)
+plt.show()
+
+print('=== 最終清理後資料 ===')
+print(df)
+print('圖表已儲存：price_bar.png')</code></pre>
+
+  <div class="two">
+    <div class="card">
+      <h4>執行順序</h4>
+      <ol>
+        <li>先執行單元二的程式碼建立 <code>sample.html</code>。</li>
+        <li>將上述完整腳本儲存為 <code>project.py</code>。</li>
+        <li>在終端機執行 <code>python project.py</code>。</li>
+        <li>確認產出 <code>books_clean.csv</code> 與 <code>price_bar.png</code>。</li>
+      </ol>
+    </div>
+    <div class="card">
+      <h4>💡 找 OpenCode 幫忙</h4>
+      <p>遇到錯誤訊息時，可將錯誤貼給 <b>Qwen 3</b> 詢問：「這段錯誤訊息怎麼修？請給出修正後的完整程式碼。」</p>
+    </div>
+  </div>
+
+  <div class="progress">
+    <h3>單元六進度</h3>
+    <ul class="ck">
+      <li><input type="checkbox" id="u6a"><label for="u6a">建立 sample.html 與 books.csv</label></li>
+      <li><input type="checkbox" id="u6b"><label for="u6b">執行 project.py 無誤</label></li>
+      <li><input type="checkbox" id="u6c"><label for="u6c">產出 books_clean.csv 與 price_bar.png</label></li>
+    </ul>
+    <p style="margin-top:10px;font-weight:700;color:var(--green)">恭喜！你已完成從擷取、清理到視覺化的完整流程。</p>
+  </div>
+</section>
+
+<!-- ===================== 教材 Prompt 說明 ===================== -->
+<section id="prompt" class="panel" aria-labelledby="t-prompt">
+  <h2 id="t-prompt">製作這個教材的 Prompt 說明（教學版）</h2>
+  <p class="lead">這一頁說明我（李惠琦）為了製作這份「單一自含 HTML 教學網頁」所撰寫的設計提示詞，供教師參考如何用 AI 製作同類教材。</p>
+
+  <h3>1. 角色與任務設定</h3>
+  <blockquote style="background:#f1f3f6;border-left:4px solid var(--navy);padding:12px 16px;border-radius:6px;margin:12px 0;color:#374151">
+    你是一位擅長程式教育的教材設計師，隸屬國立清華大學數理教育研究所。請製作一份繁體中文教學網頁，主題為「Python 網頁爬蟲與資料視覺化：從擷取資料、清理資料到繪製圖表」，搭配 OpenCode 使用本地模型（第一模型 Gemma 4 26B、第二模型 Qwen 3），讓零基礎新手從安裝一路跑通。
+  </blockquote>
+
+  <h3>2. 核心約束條件（可直接複製）</h3>
+<pre class="code"><span class="lang">text</span><button class="copy-btn" data-clip="輸出必須是單一自包含 HTML 檔案；所有圖片必須內嵌（使用 inline SVG），不得引用任何外部圖片 URL；必須能離線顯示；頂部要有分頁籤可切換單元；每個程式區塊都要有「複製」按鈕；內容要有互動功能（小測驗、進度核對表、摺疊提示）；使用繁體中文；頁首標示「國立清華大學數理教育研究所 李惠琦」。">複製</button><code>輸出必須是單一自包含 HTML 檔案；所有圖片必須內嵌（使用 inline SVG），不得引用任何外部圖片 URL；必須能離線顯示；頂部要有分頁籤可切換單元；每個程式區塊都要有「複製」按鈕；內容要有互動功能（小測驗、進度核對表、摺疊提示）；使用繁體中文；頁首標示「國立清華大學數理教育研究所 李惠琦」。</code></pre>
+
+  <h3>3. 單元結構提示詞</h3>
+  <ul>
+    <li>單元一：環境安裝（Python、OpenCode、pip 套件、驗證）。</li>
+    <li>單元二：網頁爬蟲基礎（requests、BeautifulSoup，以本地 sample.html 離線練習）。</li>
+    <li>單元三：資料清理（pandas 缺失值、重複值、型別轉換）。</li>
+    <li>單元四：資料視覺化（matplotlib 柱狀圖/折線圖/圓餅圖、中文字體、儲存圖檔）。</li>
+    <li>單元五：OpenCode 本地模型（Gemma 4 26B 撰寫程式碼、Qwen 3 清理與解讀，含切換模型說明）。</li>
+    <li>單元六：完整實作專案（爬取→清理→視覺化一支腳本跑通）。</li>
+    <li>額外：教材 Prompt 說明頁（本頁）與關於頁。</li>
+  </ul>
+
+  <h3>4. 互動功能實作提示</h3>
+  <ul>
+    <li>分頁籤切換：用 JavaScript 切換 <code>.panel</code> 的 <code>display</code>。</li>
+    <li>複製按鈕：<code>navigator.clipboard.writeText(...)</code>，複製後顯示 toast 提示。</li>
+    <li>小測驗：單選題與檢查按鈕，即時顯示正確/錯誤。</li>
+    <li>進度核對表：checkbox 狀態存入 <code>localStorage</code>，離線也能記住。</li>
+    <li>摺疊提示：隱藏 checkbox 控制 <code>max-height</code> 達到 accordion 效果，不需外部函式庫。</li>
+  </ul>
+
+  <h3>5. 圖片內嵌做法</h3>
+  <p>所有圖表與圖示皆直接以 <code>&lt;svg&gt;</code> 撰寫於 HTML 中，因此不需要網路、不會出現圖片載入失敗，也適合離線教室或無外網環境使用。</p>
+
+  <div class="alert info"><b>給教師的建議：</b>若要為其他課程製作類似教材，只需更換「角色與任務設定」與「單元結構」內容，保留「核心約束條件」即可快速產出單一自含、離線可用的互動式 HTML 教學網頁。</div>
+</section>
+
+<!-- ===================== 關於 ===================== -->
+<section id="about" class="panel" aria-labelledby="t-about">
+  <h2 id="t-about">關於與參考資料</h2>
+  <div class="card">
+    <h4>開發者 / 教學設計</h4>
+    <p>國立清華大學數理教育研究所　<b>李惠琦</b></p>
+    <p>本教材為教學示範用單一 HTML 檔，全部圖片皆內嵌 SVG，可離線使用。</p>
+  </div>
+  <div class="card">
+    <h4>主要參考文件</h4>
+    <ul>
+      <li><a href="https://docs.python.org/zh-tw/3/">Python 官方文件（繁體中文）</a></li>
+      <li><a href="https://requests.readthedocs.io/">requests 文件</a></li>
+      <li><a href="https://www.crummy.com/software/BeautifulSoup/bs4/doc/">BeautifulSoup 文件</a></li>
+      <li><a href="https://pandas.pydata.org/docs/">pandas 文件</a></li>
+      <li><a href="https://matplotlib.org/stable/">matplotlib 文件</a></li>
+      <li><a href="https://opencode.ai/">OpenCode 官方網站</a></li>
+    </ul>
+    <p style="font-size:13px;color:var(--muted)">↑ 以上連結僅供參考閱讀，本教學內容本身不需網路即可運作。</p>
+  </div>
+  <div class="alert danger">
+    <b>免責聲明：</b>網頁爬蟲請遵守目標網站的 robots.txt 與服務條款，僅擷取公開資料，並注意個人資料保護與著作權。本教材不提供任何保證，使用時請自行評估風險。
+  </div>
+  <footer>
+    © 2026 國立清華大學數理教育研究所 李惠琦 · 單一自含 HTML 教學教材 · 繁體中文
+  </footer>
+</section>
+
+</div>
+
+<script>
+  /* ---- Tab switching ---- */
+  const btns = document.querySelectorAll('.tab-btn');
+  const panels = document.querySelectorAll('.panel');
+  function showTab(id){
+    btns.forEach(b=>{
+      const active = b.dataset.tab === id;
+      b.classList.toggle('active', active);
+      b.setAttribute('aria-active', active);
+    });
+    panels.forEach(p=>{
+      const active = p.id === id;
+      p.classList.toggle('active', active);
+    });
+  }
+  btns.forEach(b=>{
+    b.addEventListener('click', ()=> showTab(b.dataset.tab));
+  });
+
+  /* ---- Copy buttons ---- */
+  document.querySelectorAll('.copy-btn').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const text = btn.getAttribute('data-clip');
+      navigator.clipboard.writeText(text).then(()=>{
+        const old = btn.textContent;
+        btn.textContent = '已複製！';
+        btn.classList.add('copied');
+        setTimeout(()=>{
+          btn.textContent = old;
+          btn.classList.remove('copied');
+        }, 1400);
+        showToast('已複製到剪貼簿');
+      }).catch(()=>{
+        showToast('複製失敗，請手動複製');
+      });
+    });
+  });
+
+  /* ---- Toast ---- */
+  function showToast(msg){
+    let t = document.querySelector('.toast');
+    if(!t){
+      t = document.createElement('div');
+      t.className = 'toast';
+      document.body.appendChild(t);
+    }
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(()=> t.classList.remove('show'), 2000);
+  }
+
+  /* ---- Quiz ---- */
+  function checkQuiz(name, correct, resultId){
+    const selected = document.querySelector('input[name="'+name+'"]:checked');
+    const res = document.getElementById(resultId);
+    if(!selected){ res.textContent = '請先選擇一個選項'; res.style.color = '#c0392b'; return; }
+    if(selected.value === correct){
+      res.textContent = '✅ 正確！';
+      res.style.color = 'var(--green)';
+    } else {
+      res.textContent = '❌ 不對，再試一次';
+      res.style.color = 'var(--danger)';
+    }
+  }
+
+  /* ---- Progress checklist persistence ---- */
+  const ckBoxes = document.querySelectorAll('ul.ck input[type=checkbox]');
+  ckBoxes.forEach(cb=>{
+    const saved = localStorage.getItem('ck_'+cb.id);
+    if(saved === '1') cb.checked = true;
+    cb.addEventListener('change', ()=>{
+      localStorage.setItem('ck_'+cb.id, cb.checked ? '1' : '0');
+    });
+  });
+</script>
+
+</body>
+</html>
